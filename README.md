@@ -1,168 +1,112 @@
-# PRTG Hard Disk Sentinel Disk Health Sensor
+# PRTG Hard Disk Sentinel Integration
 
-PRTG EXE/Script Advanced sensor for monitoring Hard Disk Sentinel health and SMART attributes.
+**Advanced PRTG EXE/Script Advanced sensor for monitoring Hard Disk Sentinel health and SMART attributes.**
+
+![PRTG](https://img.shields.io/badge/PRTG-Network%20Monitor-blue)
+![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-blue)
+![Hard Disk Sentinel](https://img.shields.io/badge/Hard%20Disk%20Sentinel-Professional%2FEnterprise-orange)
 
 ## Features
 
-- HDD and SSD health monitoring
-- SSD endurance monitoring
-- Predictive failure detection
-- Controller timeout monitoring
-- Media and Data Integrity Error monitoring
-- Multi-disk support
-- Native PRTG XML output
+- Real-time HDD and SSD health monitoring
+- SSD endurance / wear-out monitoring
+- Predictive Failure detection (HP Smart Array)
+- Controller timeout tracking
+- Uncorrectable error and media integrity error monitoring
+- Automatic HDD/SSD detection
+- Full multi-disk support
+- Clean native PRTG XML output with proper limits and messages
 
 ## Requirements
 
 - PRTG Network Monitor
-- Hard Disk Sentinel Professional or Enterprise
+- Hard Disk Sentinel **Professional** or **Enterprise** (with WebStatus enabled)
 - PowerShell 5.1 or newer
+- Network access from PRTG Probe to Hard Disk Sentinel's HTTP port
 
-# Installation
+## Installation
 
-## 1. Copy Script
+### 1. Copy the Script
 
-Copy `Disk-Health.ps1` to:
+Copy `Disk-Health.ps1` to one of the following directories on your **PRTG Probe** server:
 
-C:\Program Files\PRTG Network Monitor\Custom Sensors\EXEXML
+```text
+C:\Program Files (x86)\PRTG Network Monitor\Custom Sensors\EXEXML\
+C:\Program Files\PRTG Network Monitor\Custom Sensors\EXEXML\
+```
 
-or
+### 2. Configure Hard Disk Sentinel
 
-C:\Program Files (x86)\PRTG Network Monitor\Custom Sensors\EXEXML
+1. Open **Hard Disk Sentinel** on the monitored server.
+2. Go to **Options** → **Advanced Options** → **Integration**.
+3. Enable **Web Status**.
+4. Set the desired **HTTP Port** (default: `61220`).
+5. (Optional) Set a password if needed.
+6. Click **OK** to apply.
 
-Depending on your PRTG installation.
+**Verify the XML service is working:**
 
----
-
-## 2. Verify Hard Disk Sentinel XML Service
-
-Open the following URL on the target server:
-
+Open in a browser:
+```
 http://localhost:61220/xml
+```
+(or replace `localhost` with the actual server IP). You should see a detailed XML document containing disk information.
 
-If the XML page loads successfully, the integration is working correctly.
+### 3. Add Sensor in PRTG
 
----
+1. In the PRTG Web Interface, go to the device representing the monitored server.
+2. Click **Add Sensor**.
+3. Search for and select **EXE/Script Advanced**.
+4. Choose `Disk-Health.ps1` from the dropdown.
+5. In the **Parameters** field, enter:
 
-## 3. Add the Sensor in PRTG
+   ```
+   %host 61220
+   ```
 
-1. Open PRTG Web Interface
-2. Navigate to the device representing the monitored server
-3. Click Add Sensor
-4. Search for: EXE/Script Advanced
-5. Select: Disk-Health.ps1
-6. Click Continue
+   - `%host` will be automatically replaced by the device's IP address.
+   - Change `61220` if you use a different port in Hard Disk Sentinel.
 
-### Sensor Parameters
+6. Click **Continue** and save the sensor.
 
-In the **Parameters** field enter:
+**Recommended Setup**: Install a **PRTG Remote Probe** on the target server and run the sensor locally for best performance and reliability.
 
-"%host" 61220
+## Sensor Channels
 
-PRTG automatically replaces `%host` with the IP address configured on the device.
+The sensor automatically creates the following channels for each detected disk:
 
-Example:
+- **Disk X [Serial] Health** — Overall health percentage
+- **Disk X [Serial] Predictive Failure Status** — HP Smart Array predictive failures
+- **Disk X [Serial] Percent Endurance Used** — SSD wear level (SSD only)
+- **Disk X [Serial] Controller Timeouts** — Communication timeouts
+- **Disk X [Serial] Uncorrectable Errors Status** — Uncorrectable error count
+- **Disk X [Serial] Media and Data Integrity Errors** — Media errors
 
-If the device IP is:
+## Parameters
 
-192.168.1.100
-
-PRTG will execute:
-
-Disk-Health.ps1 "192.168.1.100" 61220
----
-
-## Using the Device IP Automatically
-
-In the sensor settings, configure the Parameters field as:
-
-%host 61220
-
-### Example
-
-If the PRTG device IP is:
-
-192.168.1.100
-
-PRTG automatically executes:
-
-Disk-Health.ps1 192.168.1.100 61220
-
-This allows the same sensor template to be reused across multiple servers without modifying the script.
-
----
-
-## Running the Sensor on the Target Host (Recommended)
-
-For best results:
-
-- Install Hard Disk Sentinel on the monitored server.
-- Install a PRTG Remote Probe on the same server.
-- Run the sensor through the local probe.
-
-This avoids firewall issues and ensures direct access to the local Hard Disk Sentinel service.
-
----
-
-## Hard Disk Sentinel Integration
-
-Open:
-
-Configuration → Integration → Web Status
-
-Enable:
-
-- Enable Web Status
-- Enable XML Status Page
-
-Default URL:
-
-http://localhost:61220/xml
-
-Verify the URL returns XML before adding the sensor to PRTG.
-
----
-
-## Generated Channels
-
-- Health
-- Predictive Failure Status
-- Percent Endurance Used
-- Controller Timeouts
-- Uncorrectable Errors Status
-- Media and Data Integrity Errors
-
----
+| Parameter     | Default     | Description                          |
+|---------------|-------------|--------------------------------------|
+| `ServerIP`    | `127.0.0.1` | IP address of the Hard Disk Sentinel server |
+| `Port`        | `61220`     | HTTP port of the WebStatus service   |
 
 ## Troubleshooting
 
-### HTTP Request Failed
-
-Verify:
-
-http://<server-ip>:61220/xml
-
-is reachable from the PRTG Probe server.
-
-### No Channels Created
-
-Verify:
-
-- Hard Disk Sentinel is running
-- Web Status service is enabled
-- XML Status page is enabled
-- The configured IP and port are correct
-
-### Access Denied
-
-Run:
-
-Set-ExecutionPolicy RemoteSigned
-
-from an elevated PowerShell console.
-
----
+| Issue                          | Possible Solution |
+|--------------------------------|-------------------|
+| **HTTP Request Failed**        | Verify the XML URL (`http://IP:61220/xml`) is reachable from the PRTG Probe. |
+| **No channels appear**         | Ensure Web Status and XML output are enabled in Hard Disk Sentinel. |
+| **Access Denied**              | Run `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` in an elevated PowerShell. |
+| **Sensor timeout**             | Increase timeout in sensor settings (recommended: 60–90 seconds). |
+| **Password protected**         | Add password support to the script if needed (advanced). |
 
 ## License
 
-MIT License
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+Pull requests and issues are welcome!
+
+---
+
+Made with ❤️ for the sysadmin and monitoring community.
