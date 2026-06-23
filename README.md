@@ -61,10 +61,10 @@ http://localhost:61220/xml
 5. In the **Parameters** field, enter:
 
    ```
-   %host 61220
+   "%host" 61220
    ```
 
-   - `%host` will be automatically replaced by the device's IP address.
+   - "`%host`" will be automatically replaced by the device's IP address.
    - Change `61220` if you use a different port in Hard Disk Sentinel.
 
 6. Click **Continue** and save the sensor.
