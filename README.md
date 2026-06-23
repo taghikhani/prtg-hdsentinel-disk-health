@@ -61,10 +61,6 @@ Disk-Health.ps1 -ServerIP 192.168.1.10 -Port 61220
 - Uncorrectable Errors Status
 - Media and Data Integrity Errors
 
-## Notes
-
-For the `Uncorrectable Errors Status` channel, a value of **100 indicates healthy status**. Values below 100 are treated as degraded according to Hard Disk Sentinel reporting.
-
 ## License
 
 MIT
