@@ -100,10 +100,6 @@ For best results:
 - Install a PRTG Remote Probe on the same server.
 - Run the sensor through the local probe.
 
-Use:
-
--ServerIP 127.0.0.1 -Port 61220
-
 This avoids firewall issues and ensures direct access to the local Hard Disk Sentinel service.
 
 ---
